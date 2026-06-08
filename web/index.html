@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>SecureChain</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar">
+    <div class="nav-brand">
+        <svg class="brand-icon" viewBox="0 0 32 32" fill="none">
+            <path d="M16 2L4 9v14l12 7 12-7V9L16 2z" fill="#F0B90B"/>
+            <path d="M16 8l-5 3v6l5 3 5-3v-6l-5-3z" fill="#0B0E11"/>
+        </svg>
+        <span class="brand-name">SecureChain</span>
+    </div>
+    <div class="nav-links">
+        <a class="nav-link active" onclick="showTab('explorer')">Explorer</a>
+        <a class="nav-link" onclick="showTab('trade')">Transaction</a>
+        <a class="nav-link" onclick="showTab('wallet')">Wallet</a>
+    </div>
+    <div class="nav-right">
+        <span id="chain-status-badge" class="status-pill">Chargement...</span>
+    </div>
+</nav>
+
+<!-- STATS BAR -->
+<div class="stats-bar">
+    <div class="stat-item">
+        <span class="stat-label">Blocs</span>
+        <span class="stat-val" id="stat-blocks">—</span>
+    </div>
+    <div class="stat-sep"></div>
+    <div class="stat-item">
+        <span class="stat-label">TX en attente</span>
+        <span class="stat-val" id="stat-pending">—</span>
+    </div>
+    <div class="stat-sep"></div>
+    <div class="stat-item">
+        <span class="stat-label">Difficulté</span>
+        <span class="stat-val" id="stat-diff">4</span>
+    </div>
+    <div class="stat-sep"></div>
+    <div class="stat-item">
+        <span class="stat-label">Devise</span>
+        <span class="stat-val yellow">SCoin</span>
+    </div>
+</div>
+
+<!-- TABS -->
+<div class="page-content">
+
+    <!-- EXPLORER TAB -->
+    <div id="tab-explorer" class="tab-content active">
+        <div class="section-header">
+            <h2>Blockchain Explorer</h2>
+            <button class="btn btn-ghost" onclick="loadAll()">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.65 6.35A7.958 7.958 0 0012 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0112 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+                Rafraîchir
+            </button>
+        </div>
+
+        <!-- Pending TX panel -->
+        <div class="panel" id="pending-panel">
+            <div class="panel-head">
+                <span class="panel-title">Transactions en attente</span>
+                <span class="badge-yellow" id="pending-count">0</span>
+            </div>
+            <div id="pending-list">
+                <p class="empty-state">Aucune transaction en attente</p>
+            </div>
+            <div class="mine-row">
+                <input type="text" id="miner-address" class="inp" placeholder="Adresse du mineur (récompense)">
+                <button class="btn btn-yellow" onclick="mine()">Miner le bloc</button>
+            </div>
+            <div id="mine-msg"></div>
+        </div>
+
+        <!-- Blocks table -->
+        <div class="panel">
+            <div class="panel-head">
+                <span class="panel-title">Derniers blocs</span>
+            </div>
+            <div class="table-wrap">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Bloc</th>
+                            <th>Hash</th>
+                            <th>Hash précédent</th>
+                            <th>Nonce</th>
+                            <th>TX</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody id="chain-table"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- TRADE TAB -->
+    <div id="tab-trade" class="tab-content">
+        <div class="trade-layout">
+            <div class="trade-form-card">
+                <div class="trade-tabs">
+                    <button class="trade-tab active">Envoyer</button>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Expéditeur</label>
+                    <input type="text" id="sender" class="inp" placeholder="ex: Alice">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Destinataire</label>
+                    <input type="text" id="receiver" class="inp" placeholder="ex: Bob">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Montant (SCoin)</label>
+                    <div class="inp-with-unit">
+                        <input type="number" id="amount" class="inp" placeholder="0.00" min="0.00001" step="any">
+                        <span class="inp-unit">SCoin</span>
+                    </div>
+                </div>
+                <button class="btn btn-yellow btn-full" onclick="sendTx()">Confirmer la transaction</button>
+                <div id="tx-msg"></div>
+            </div>
+
+            <div class="trade-info-card">
+                <div class="panel-head"><span class="panel-title">Dernières transactions</span></div>
+                <div id="recent-txs">
+                    <p class="empty-state">Aucune transaction</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- WALLET TAB -->
+    <div id="tab-wallet" class="tab-content">
+        <div class="wallet-layout">
+            <div class="panel wallet-card">
+                <div class="wallet-icon">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="#F0B90B"><path d="M21 18v1c0 1.1-.9 2-2 2H5c-1.11 0-2-.9-2-2V5c0-1.1.89-2 2-2h14c1.1 0 2 .9 2 2v1h-9c-1.11 0-2 .9-2 2v8c0 1.1.89 2 2 2h9zm-9-2h10V8H12v8zm4-2.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>
+                </div>
+                <h3 class="wallet-title">Vérifier un solde</h3>
+                <div class="form-group">
+                    <label class="form-label">Adresse</label>
+                    <input type="text" id="balance-address" class="inp" placeholder="ex: Alice">
+                </div>
+                <button class="btn btn-yellow btn-full" onclick="checkBalance()">Vérifier</button>
+                <div id="balance-result"></div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- BLOCK DETAIL MODAL -->
+<div id="modal-overlay" class="modal-overlay" onclick="closeModal()">
+    <div class="modal" onclick="event.stopPropagation()">
+        <div class="modal-head">
+            <span id="modal-title">Détail du bloc</span>
+            <button class="modal-close" onclick="closeModal()">✕</button>
+        </div>
+        <div id="modal-body"></div>
+    </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
